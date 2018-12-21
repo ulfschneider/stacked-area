@@ -1,0 +1,36 @@
+{
+    "name": "stacked-area",
+    "version": "1.0.0",
+    "description": "Draw SVG Stacked Area Charts",
+    "main": "stacked-area.js",
+    "scripts": {
+        "test": "jest",
+        "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+    },
+    "jest": {
+        "verbose": true,
+        "testURL": "http://localhost/",
+        "collectCoverage": true
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ulfschneider/stacked-area.git"
+    },
+    "author": "Ulf Schneider",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/ulfschneider/stacked-area/issues"
+    },
+    "homepage": "https://github.com/ulfschneider/stacked-area#readme",
+    "dependencies": {
+        "d3": "^5.7.0",
+        "js-base64": "^2.4.9",
+        "moment": "^2.22.2"
+    },
+    "devDependencies": {
+        "coveralls": "^3.0.2",
+        "fs": "0.0.1-security",
+        "jest": "^23.5.0",
+        "jsdom": "^12.2.0"
+    }
+}
