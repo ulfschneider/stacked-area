@@ -7,6 +7,20 @@ const Base64 = require('js-base64').Base64;
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
 const DATE_FORMAT = 'YYYY-MM-DD';
+const DEFAULT_COLORS = ['#222', '#555', '#888', '#bbb'];
+
+const CURVES = new Map([
+    ['basis', d3.curveBasis],
+    ['bundle', d3.curveBundle],
+    ['cardinal', d3.curveCardinal],
+    ['catmullRom', d3.curveCatmullRom],
+    ['linear', d3.curveLinear],
+    ['monotoneX', d3.curveMonotoneX],
+    ['monotoneY', d3.curveMonotoneY],
+    ['step', d3.curveStep],
+    ['stepAfter', d3.curveStepAfter],
+    ['stepBefore', d3.curveStepBefore]
+]); //check http://bl.ocks.org/d3indepth/b6d4845973089bc1012dec1674d3aff8
 
 function validateSettings(settings) {
     if (!settings) {
@@ -21,6 +35,7 @@ function validateSettings(settings) {
     validateMargins(settings);
     validateStyles(settings);
     validateDrawOptions(settings);
+    validateCurveOptions(settings);
 }
 
 function validateData(settings) {
@@ -42,6 +57,8 @@ function validateData(settings) {
 
     if (!settings.data.keys) {
         throw "No keys defined"
+    } else {
+        settings.data.reverseKeys = [...settings.data.keys].reverse();
     }
 }
 
@@ -138,6 +155,16 @@ function validateDrawOptions(settings) {
     }
 }
 
+function validateCurveOptions(settings) {
+    if (!settings.curve) {
+        settings.curve = {
+            type: 'linear'
+        }
+    } else if (!settings.curve.type) {
+        settings.curve.type = 'linear';
+    }
+}
+
 
 function prepareSVG(settings) {
     settings.d3svg = d3.select(settings.svg);
@@ -162,9 +189,18 @@ function prepareScales(settings) {
 
 function prepareDataFunctions(settings) {
 
+    let curve = CURVES.get(settings.curve.type);
+    if (settings.curve.type == 'bundle' && settings.curve.beta) {
+        curve = curve.beta(settings.curve.beta);
+    } else if (settings.curve.type == 'cardinal' && settings.curve.tension) {
+        curve = curve.tension(settings.curve.tension);
+    } else if (settings.curve.type == 'catmullRom' && settings.curve.alpa) {
+        curve = curve.alpha(settings.curve.alpha);
+    }
+    //alpha, beta, tension
     settings.stack = d3.stack();
     settings.area = d3.area()
-        //.curve(d3.curveStepAfter) - this kind of interpolation is more correct, but not very readable
+        .curve(curve)
         .x(function (d) {
             return settings.x(moment(d.data.date));
         })
@@ -230,7 +266,8 @@ function getColor(key, settings) {
     if (settings.style[key] && settings.style[key].color) {
         return settings.style[key].color;
     } else {
-        return settings.style.color;
+        let index = settings.data.reverseKeys.indexOf(key) % DEFAULT_COLORS.length;
+        return DEFAULT_COLORS[index];
     }
 }
 
@@ -305,18 +342,25 @@ function drawMarkers(settings) {
 
     let mark = function (date, label) {
         let x1 = settings.x(moment(date));
+        if (x1 < 0.5) {
+            //perfect left align if a marker sit at the most left boundary of the diagram
+            x1 = 0.5;
+        }
         let y1 = settings.innerHeight;
         let y2 = 0;
         if (!moment(date).isSame(settings.toDate) || !settings.drawOptions.includes('axis')) {
-            //as we have an axis at the right side, do only draw
+            //as we have an axis at the right side, we only draw
             //the marker if its not directly on top of the axis
-            settings.g.append('line')
-                .attr('x1', x1)
-                .attr('y1', y1)
-                .attr('x2', x1)
-                .attr('y2', y2)
-                .style('stroke-width', '3')
-                .style('stroke', settings.style.markers.backgroundColor);
+
+            if (x1 > 0.5) {
+                settings.g.append('line')
+                    .attr('x1', x1)
+                    .attr('y1', y1)
+                    .attr('x2', x1)
+                    .attr('y2', y2)
+                    .style('stroke-width', '3')
+                    .style('stroke', settings.style.markers.backgroundColor);
+            }
             settings.g.append('line')
                 .attr('x1', x1)
                 .attr('y1', y1)
@@ -393,7 +437,8 @@ function drawTextWithBackground({
 
 function drawLegend(settings) {
 
-    const X = 7;
+    const X = 10;
+    const Y = 2.5;
     const lineHeight = settings.style.fontSize;
 
     const drawLegendItem = function ({
@@ -435,7 +480,7 @@ function drawLegend(settings) {
         if (settings.title) {
             drawLegendItem({
                 text: settings.title,
-                x: X - 2,
+                x: X - 3,
                 y: -35,
                 fill: settings.style.color
             });
@@ -445,8 +490,8 @@ function drawLegend(settings) {
     if (settings.drawOptions.includes('legend')) {
         let hasTitle = settings.legendTitle;
         let background = drawRectangle({
-            x: X - 2,
-            y: lineHeight / 2 - 2,
+            x: X - 3,
+            y: Y + lineHeight / 2 - 3,
             width: settings.style.fontSize * 6,
             height: ((hasTitle ? 2 : 0.5) + settings.data.keys.length) * lineHeight,
             stroke: settings.style.color
@@ -456,24 +501,24 @@ function drawLegend(settings) {
         if (settings.legendTitle) {
             drawLegendItem({
                 text: settings.legendTitle,
-                x: X + 1,
-                y: lineHeight + 2,
+                x: X,
+                y: Y + lineHeight,
                 fill: settings.style.color
             });
         }
 
-        settings.data.keys.reverse().forEach((key, index) => {
+        settings.data.reverseKeys.forEach((key, index) => {
             drawRectangle({
-                x: X + 1,
-                y: ((hasTitle ? 2 : 0.5) + index) * lineHeight + 1,
+                x: X,
+                y: Y + ((hasTitle ? 2 : 0.5) + index) * lineHeight,
                 width: lineHeight,
                 height: lineHeight,
                 fill: getColor(key, settings)
             });
             let item = drawLegendItem({
                 text: key,
-                x: X + lineHeight * 1.62 + 1,
-                y: ((hasTitle ? 2.5 : 1) + index) * lineHeight + 1,
+                x: X + lineHeight * 1.62,
+                y: Y + ((hasTitle ? 2.5 : 1) + index) * lineHeight,
                 fill: settings.style.color
             });
 
@@ -534,10 +579,16 @@ StackedArea.prototype.remove = function () {
  * and return the result as a string which can be assigned to the src attribute of an HTML img tag.
  * @returns {string}
  */
-StackedArea.prototype.image = function () {
+StackedArea.prototype.imageSource = function () {
     this.draw();
     let html = this.settings.svg.outerHTML;
     return 'data:image/svg+xml;base64,' + Base64.encode(html);
+}
+
+
+StackedArea.prototype.svgSource = function () {
+    this.draw();
+    return this.settings.svg.outerHTML;
 }
 
 module.exports = function (settings) {

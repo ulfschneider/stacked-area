@@ -8,7 +8,7 @@ const {
 const stackedArea = require('stacked-area');
 const moment = require('moment');
 const NOW = '2018-09-11';
-const NUMBER_OF_TEST_IMAGES = 5;
+const NUMBER_OF_TEST_IMAGES = 6;
 let actuals = [];
 let expected = [];
 let settings;
@@ -19,35 +19,11 @@ function makeTestSettings() {
     let now = moment(NOW);
     settings.data = makeTestData();
     settings.svg = JSDOM.fragment('<svg></svg>').firstChild;
-    settings.title = 'Testing the Stacked Area Chart';
-    //settings.legendTitle = 'Issues:'
+    settings.title = 'Testing the Stacked Area Chart';    
     
     settings.fromDate = moment(now).subtract(8, 'days');
     settings.toDate = moment(now).add(3, 'days');
 
-    settings.style = {
-        Highest: {
-            color: '#222',
-            stroke: 'white'
-        },
-        High: {
-            color: '#555',
-            stroke: 'white'
-        },
-        Medium: {
-            color: '#888',
-            stroke: 'white'
-        },
-        Low: {
-            color: '#bbb',
-            stroke: 'white'
-        },
-        Lowest: {
-            color: '#eee',
-            stroke: 'white'
-        }
-
-    }
     return settings;
 }
 
@@ -167,6 +143,53 @@ test('no svg tag', () => {
     }).toThrow(/No svg/);
 });
 
+test('no data', () => {
+    let settings = makeTestSettings();
+    let diagram = stackedArea(settings);
+    delete settings.data;
+    expect(() => {
+        diagram.draw()
+    }).toThrow(/No data/);
+});
+
+test('no data entries', () => {
+    let settings = makeTestSettings();
+    delete settings.data.entries;
+    let diagram = stackedArea(settings);
+    expect(() => {
+        diagram.draw()
+    }).toThrow(/No data entries/);
+});
+
+test('empty data entries', () => {
+    let settings = makeTestSettings();
+    let diagram = stackedArea(settings);
+    settings.data = {
+        entries: []
+    }
+    expect(() => {
+        diagram.draw()
+    }).toThrow(/Empty data entries/);
+});
+
+test('data entries not an array', () => {
+    let settings = makeTestSettings();
+    let diagram = stackedArea(settings);
+    settings.data.entries = {}
+    expect(() => {
+        diagram.draw()
+    }).toThrow(/Data entries not an array/);
+});
+
+test('no keys defined', () => {
+    let settings = makeTestSettings();
+    let diagram = stackedArea(settings);
+    delete settings.data.keys;
+    expect(() => {
+        diagram.draw();
+    }).toThrow(/No keys defined/);
+});
+
 
 test('default width and default height', () => {
     let settings = makeTestSettings();
@@ -208,27 +231,234 @@ test('inner width and inner height', () => {
         .toBe(400 - settings.margin.top - settings.margin.bottom);
 });
 
+test('set top margin', () => {
+    let settings = makeTestSettings();
+    let diagram = stackedArea(settings);
+    settings.margin = { top: 10 };
+    diagram.draw();
+    expect(settings.margin.top)
+        .toBe(10);
+    expect(settings.margin.right)
+        .toBe(50);
+    expect(settings.margin.bottom)
+        .toBe(50);
+    expect(settings.margin.left)
+        .toBe(50);
+    expect(settings.innerWidth)
+        .toBe(800 - settings.margin.left - settings.margin.right);
+    expect(settings.innerHeight)
+        .toBe(400 - settings.margin.top - settings.margin.bottom);
+});
+
+test('set right margin', () => {
+    let settings = makeTestSettings();
+    let diagram = stackedArea(settings);
+    settings.margin = { right: 10 };
+    diagram.draw();
+    expect(settings.margin.top)
+        .toBe(50);
+    expect(settings.margin.right)
+        .toBe(10);
+    expect(settings.margin.bottom)
+        .toBe(50);
+    expect(settings.margin.left)
+        .toBe(50);
+    expect(settings.innerWidth)
+        .toBe(800 - settings.margin.left - settings.margin.right);
+    expect(settings.innerHeight)
+        .toBe(400 - settings.margin.top - settings.margin.bottom);
+});
+
+test('set bottom margin', () => {
+    let settings = makeTestSettings();
+    let diagram = stackedArea(settings);
+    settings.margin = { bottom: 10 };
+    diagram.draw();
+    expect(settings.margin.top)
+        .toBe(50);
+    expect(settings.margin.right)
+        .toBe(50);
+    expect(settings.margin.bottom)
+        .toBe(10);
+    expect(settings.margin.left)
+        .toBe(50);
+    expect(settings.innerWidth)
+        .toBe(800 - settings.margin.left - settings.margin.right);
+    expect(settings.innerHeight)
+        .toBe(400 - settings.margin.top - settings.margin.bottom);
+});
+
+test('set left margin', () => {
+    let settings = makeTestSettings();
+    let diagram = stackedArea(settings);
+    settings.margin = { left: 10 };
+    diagram.draw();
+    expect(settings.margin.top)
+        .toBe(50);
+    expect(settings.margin.right)
+        .toBe(50);
+    expect(settings.margin.bottom)
+        .toBe(50);
+    expect(settings.margin.left)
+        .toBe(10);
+    expect(settings.innerWidth)
+        .toBe(800 - settings.margin.left - settings.margin.right);
+    expect(settings.innerHeight)
+        .toBe(400 - settings.margin.top - settings.margin.bottom);
+});
+
+test('set left and top margin to 0', () => {
+    let settings = makeTestSettings();
+    let diagram = stackedArea(settings);
+    settings.margin = { left: 0, top: 0 };
+    diagram.draw();
+    expect(settings.margin.top)
+        .toBe(0);
+    expect(settings.margin.right)
+        .toBe(50);
+    expect(settings.margin.bottom)
+        .toBe(50);
+    expect(settings.margin.left)
+        .toBe(0);
+    expect(settings.innerWidth)
+        .toBe(800 - settings.margin.left - settings.margin.right);
+    expect(settings.innerHeight)
+        .toBe(400 - settings.margin.top - settings.margin.bottom);
+});
+
+
+test('default style', () => {
+    let settings = makeTestSettings();
+    let diagram = stackedArea(settings);
+
+    let color = '#222';
+    let background = '#fff';
+    diagram.draw();
+    expect(settings.style.fontSize).toBe(12);
+    expect(settings.style.fontFamily).toBe('sans-serif');
+    expect(settings.style.color).toBe(color);
+    expect(settings.style.backgroundColor).toBe(background);
+    expect(settings.style.axis.color).toBe(color);
+    expect(settings.style.markers.backgroundColor).toBe(background);
+    expect(settings.style.markers.color).toBe(color);
+});
+
+test('stroke colors, empty axis color', () => {
+    let settings = makeTestSettings();
+    let diagram = stackedArea(settings);
+    let color = '#222';
+    let background = '#fff';
+
+    settings.style = {};
+    settings.style.markers = {
+        backgroundColor: color
+    };
+    settings.style.axis = {};
+
+    diagram.draw();
+    expect(settings.style.fontSize).toBe(12);
+    expect(settings.style.fontFamily).toBe('sans-serif');
+    expect(settings.style.color).toBe(color);
+    expect(settings.style.backgroundColor).toBe(background);
+    expect(settings.style.axis.color).toBe(color);
+    expect(settings.style.markers.backgroundColor).toBe(color);
+    expect(settings.style.markers.color).toBe(color);
+});
+
+test('no draw options', () => {
+    let settings = makeTestSettings();
+    delete settings.drawOptions;
+    let diagram = stackedArea(settings);
+    diagram.draw();
+    expect(settings.drawOptions).toEqual(['title', 'axis', 'legend', 'markers']);
+});
+
+
+test('empty draw options', () => {
+    let settings = makeTestSettings();
+    settings.drawOptions = [];
+    let diagram = stackedArea(settings);
+    diagram.draw();
+    expect(settings.drawOptions).toEqual([]);
+});
+
+test('title draw options', () => {
+    let settings = makeTestSettings();
+    settings.drawOptions = ['title'];
+    let diagram = stackedArea(settings);
+    diagram.draw();
+    expect(settings.drawOptions).toEqual(['title']);
+});
+
+test('axis draw options', () => {
+    let settings = makeTestSettings();
+    settings.drawOptions = ['axis'];
+    let diagram = stackedArea(settings);
+    diagram.draw();
+    expect(settings.drawOptions).toEqual(['axis']);
+});
+
+test('legend draw options', () => {
+    let settings = makeTestSettings();
+    settings.drawOptions = ['legend'];
+    let diagram = stackedArea(settings);
+    diagram.draw();
+    expect(settings.drawOptions).toEqual(['legend']);
+});
+
+test('markers draw options', () => {
+    let settings = makeTestSettings();
+    settings.drawOptions = ['markers'];
+    let diagram = stackedArea(settings);
+    diagram.draw();
+    expect(settings.drawOptions).toEqual(['markers']);
+});
+
+
+
 test('image 1 with default test data', () => {
     let settings = makeTestSettings();
-    settings.title = 'Testing CFD';
+    settings.title = 'Testing Stacked Area';
     settings.markers = [
         {date: settings.fromDate},
         {date: settings.toDate}
     ];
     
     let diagram = stackedArea(settings);
-    let actual = diagram.image();
+    let actual = diagram.svgSource();
     actuals.push(actual);
 
     expect(actuals[0]).toBe(expected[0]);
 });
 
-test('image 2 without markers', () => {
+test('image 2 without markers and custom colors', () => {
     let settings = makeTestSettings();
-    settings.title = 'Testing CFD without markers';
+    settings.title = 'Testing Stacked Area without markers and custom colors';
+    settings.style = {
+        Highest: {
+            color: 'chartreuse',
+            stroke: 'white'
+        },
+        High: {
+            color: 'cornflowerblue',
+            stroke: 'white'
+        },
+        Medium: {
+            color: 'darkorange',
+            stroke: 'white'
+        },
+        Low: {
+            color: 'firebrick',
+            stroke: 'white'
+        },
+        Lowest: {
+            color: 'purple',
+            stroke: 'white'
+        }
+    }
     
     let diagram = stackedArea(settings);
-    let actual = diagram.image();
+    let actual = diagram.svgSource();
     actuals.push(actual);
 
     expect(actuals[1]).toBe(expected[1]);
@@ -236,14 +466,14 @@ test('image 2 without markers', () => {
 
 test('image 3 with markers out of range', () => {
     let settings = makeTestSettings();
-    settings.title = 'Testing CFD with markers out of range';
+    settings.title = 'Testing Stacked Area with markers out of range';
     settings.markers = [
         {date: moment(settings.fromDate).subtract(2, 'days')},
         {date: moment(settings.toDate).add(2, 'days')}
     ];
     
     let diagram = stackedArea(settings);
-    let actual = diagram.image();
+    let actual = diagram.svgSource();
     actuals.push(actual);
 
     expect(actuals[2]).toBe(expected[2]);
@@ -251,7 +481,7 @@ test('image 3 with markers out of range', () => {
 
 test('image 4 without fromDate and toDate', () => {
     let settings = makeTestSettings();
-    settings.title = 'Testing CFD without fromDate and toDate';
+    settings.title = 'Testing Stacked Area without fromDate and toDate';
     settings.markers = [
         {date: moment(settings.fromDate).subtract(2, 'days')},
         {date: moment(settings.toDate).add(2, 'days')}
@@ -261,24 +491,39 @@ test('image 4 without fromDate and toDate', () => {
 
     
     let diagram = stackedArea(settings);
-    let actual = diagram.image();
+    let actual = diagram.svgSource();
     actuals.push(actual);
 
     expect(actuals[3]).toBe(expected[3]);
 });
 
-test('image 4 with legend title', () => {
+test('image 5 with legend title', () => {
     let settings = makeTestSettings();
-    settings.title = 'Testing CFD with legend title';
+    settings.title = 'Testing Stacked Area with legend title';
     settings.legendTitle = 'Issues:';
     delete settings.fromDate;
     delete settings.toDate;
     
     let diagram = stackedArea(settings);
-    let actual = diagram.image();
+    let actual = diagram.svgSource();
     actuals.push(actual);
 
     expect(actuals[4]).toBe(expected[4]);
+});
+
+test('image 6 with curve step', () => {
+    let settings = makeTestSettings();
+    settings.title = 'Testing Stacked Area with step curve';
+
+    let diagram = stackedArea(settings);
+    diagram.draw();
+    expect(settings.curve.type).toEqual('linear');
+
+    settings.curve.type = 'step';
+    let actual = diagram.svgSource();
+    actuals.push(actual);
+    
+    expect(actuals[5]).toBe(expected[5]);
 });
 
 
@@ -297,11 +542,11 @@ test('write test results into file', () => {
         writeTestFile('./test/actual' + i + '.svg', actuals[i]);
         let match = expected[i] == actuals[i];
         if (match) {
-            testFileContent += '<div class="image-set"><div class="box"><div class="label">Expected ' + (i+1) + '</div><img id="expect' + (i+1) + '" src="' + expected[i] + '"/></div>'
-                + '<div class="box"><div class="label expected">Actual ' + (i+1) + ' is as expected</div><img id="actual' + (i+1) + '" src="' + actuals[i] + '"/></div></div>';
+            testFileContent += '<div class="image-set"><div class="box"><div class="label">Expected ' + (i+1) + '</div>' + expected[i] + '</div>'
+                + '<div class="box"><div class="label expected">Actual ' + (i+1) + ' is as expected</div>' + actuals[i] + '</div></div>';
         } else {
-            testFileContent += '<div class="image-set"><div class="box"><div class="label">Expected ' + (i+1) + '</div><img id="expect' + (i+1) + '" src="' + expected[i] + '"/></div>'
-                + '<div class="box"><div class="label mismatch">Actual ' + (i+1) + ' has a mismatch</div><img id="actual' + (i+1) + '" src="' + actuals[i] + '"/></div></div>';
+            testFileContent += '<div class="image-set"><div class="box"><div class="label">Expected ' + (i+1) + '</div>' + expected[i] + '</div>'
+                + '<div class="box"><div class="label mismatch">Actual ' + (i+1) + ' has a mismatch</div>' + actuals[i] + '</div></div>';
 
         }
     }
