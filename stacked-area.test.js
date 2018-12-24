@@ -1,10 +1,6 @@
 'use babel'
 
 const fs = require('fs');
-const jsdom = require('jsdom');
-const {
-    JSDOM
-} = jsdom;
 const stackedArea = require('stacked-area');
 const moment = require('moment');
 const NOW = '2018-09-11';
@@ -18,7 +14,7 @@ function makeTestSettings() {
     settings = {};
     let now = moment(NOW);
     settings.data = makeTestData();
-    settings.svg = JSDOM.fragment('<svg></svg>').firstChild;
+    settings.svg = document.createElement('svg');
     settings.title = 'Testing the Stacked Area Chart';    
     
     settings.fromDate = moment(now).subtract(8, 'days');
@@ -136,7 +132,7 @@ test('empty settings', () => {
 
 test('no svg tag', () => {
     let settings = {};
-    settings.svg = JSDOM.fragment('<div></div>').firstChild;
+    settings.svg = document.createElement('div');
 
     expect(() => {
         diagram.draw()

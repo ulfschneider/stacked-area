@@ -27,7 +27,7 @@ function validateSettings(settings) {
         throw "No settings";
     }
 
-    if (!settings.svg || settings.svg.tagName !== 'svg') {
+    if (!settings.svg || settings.svg.tagName.toLowerCase() !== 'svg') {
         throw "No svg";
     }
 
@@ -247,6 +247,7 @@ function drawLayers(settings) {
         })))
         .enter()
         .append('g')
+        .on('mouseover', function() {console.log(new Date())})
         .attr('class', 'layer');
 
     layer
