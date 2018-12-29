@@ -4,7 +4,7 @@ const fs = require('fs');
 const stackedArea = require('stacked-area');
 const moment = require('moment');
 const NOW = '2018-09-11';
-const NUMBER_OF_TEST_IMAGES = 6;
+const NUMBER_OF_TEST_IMAGES = 9;
 let actuals = [];
 let expected = [];
 let settings;
@@ -15,8 +15,8 @@ function makeTestSettings() {
     let now = moment(NOW);
     settings.data = makeTestData();
     settings.svg = document.createElement('svg');
-    settings.title = 'Testing the Stacked Area Chart';    
-    
+    settings.title = 'Testing the Stacked Area Chart';
+
     settings.fromDate = moment(now).subtract(8, 'days');
     settings.toDate = moment(now).add(3, 'days');
 
@@ -101,8 +101,12 @@ function readTestFile(path) {
 
 function readExpectedFiles(folder, count) {
     let expected = [];
-    for(let i = 0; i < count; i++) {
-        expected.push(readTestFile(folder + '/expect' + i + '.svg'));
+    for (let i = 0; i < count; i++) {
+        try {
+            expected.push(readTestFile(folder + '/expect' + i + '.svg'));
+        } catch (e) {
+            console.log(e);
+        }
     }
     return expected;
 }
@@ -366,7 +370,7 @@ test('no draw options', () => {
     delete settings.drawOptions;
     let diagram = stackedArea(settings);
     diagram.draw();
-    expect(settings.drawOptions).toEqual(['title', 'axis', 'legend', 'markers']);
+    expect(settings.drawOptions).toEqual(['title', 'axis', 'legend', 'markers', 'focus']);
 });
 
 
@@ -412,14 +416,14 @@ test('markers draw options', () => {
 
 
 
-test('image 1 with default test data', () => {
+test('image 0 with default test data', () => {
     let settings = makeTestSettings();
     settings.title = 'Testing Stacked Area';
     settings.markers = [
-        {date: settings.fromDate},
-        {date: settings.toDate}
+        { date: settings.fromDate },
+        { date: settings.toDate }
     ];
-    
+
     let diagram = stackedArea(settings);
     let actual = diagram.svgSource();
     actuals.push(actual);
@@ -427,9 +431,16 @@ test('image 1 with default test data', () => {
     expect(actuals[0]).toBe(expected[0]);
 });
 
-test('image 2 without markers and custom colors', () => {
+test('image 1 with custom colors, no markers, no axis', () => {
     let settings = makeTestSettings();
-    settings.title = 'Testing Stacked Area without markers and custom colors';
+    settings.title = 'Testing Stacked Area with custom colors, no markers, no axis';
+    settings.drawOptions = ['legend', 'title'];
+
+    settings.markers = [
+        { date: moment(settings.fromDate).add(1, 'days') },
+        { date: moment(settings.toDate).subtract(1, 'days') }
+    ];
+
     settings.style = {
         Highest: {
             color: 'chartreuse',
@@ -452,7 +463,7 @@ test('image 2 without markers and custom colors', () => {
             stroke: 'white'
         }
     }
-    
+
     let diagram = stackedArea(settings);
     let actual = diagram.svgSource();
     actuals.push(actual);
@@ -460,14 +471,14 @@ test('image 2 without markers and custom colors', () => {
     expect(actuals[1]).toBe(expected[1]);
 });
 
-test('image 3 with markers out of range', () => {
+test('image 2 with markers out of range', () => {
     let settings = makeTestSettings();
     settings.title = 'Testing Stacked Area with markers out of range';
     settings.markers = [
-        {date: moment(settings.fromDate).subtract(2, 'days')},
-        {date: moment(settings.toDate).add(2, 'days')}
+        { date: moment(settings.fromDate).subtract(2, 'days') },
+        { date: moment(settings.toDate).add(2, 'days') }
     ];
-    
+
     let diagram = stackedArea(settings);
     let actual = diagram.svgSource();
     actuals.push(actual);
@@ -475,17 +486,17 @@ test('image 3 with markers out of range', () => {
     expect(actuals[2]).toBe(expected[2]);
 });
 
-test('image 4 without fromDate and toDate', () => {
+test('image 3 without fromDate and toDate', () => {
     let settings = makeTestSettings();
     settings.title = 'Testing Stacked Area without fromDate and toDate';
     settings.markers = [
-        {date: moment(settings.fromDate).subtract(2, 'days')},
-        {date: moment(settings.toDate).add(2, 'days')}
+        { date: moment(settings.fromDate).subtract(2, 'days') },
+        { date: moment(settings.toDate).add(2, 'days') }
     ];
     delete settings.fromDate;
     delete settings.toDate;
 
-    
+
     let diagram = stackedArea(settings);
     let actual = diagram.svgSource();
     actuals.push(actual);
@@ -493,13 +504,14 @@ test('image 4 without fromDate and toDate', () => {
     expect(actuals[3]).toBe(expected[3]);
 });
 
-test('image 5 with legend title', () => {
+test('image 4 with legend title and no further draw options', () => {
     let settings = makeTestSettings();
-    settings.title = 'Testing Stacked Area with legend title';
+    settings.drawOptions = ['legend'];
+    settings.title = 'Testing Stacked Area with legend title and no further draw options';
     settings.legendTitle = 'Issues:';
     delete settings.fromDate;
     delete settings.toDate;
-    
+
     let diagram = stackedArea(settings);
     let actual = diagram.svgSource();
     actuals.push(actual);
@@ -507,7 +519,7 @@ test('image 5 with legend title', () => {
     expect(actuals[4]).toBe(expected[4]);
 });
 
-test('image 6 with curve step', () => {
+test('image 5 with curve step', () => {
     let settings = makeTestSettings();
     settings.title = 'Testing Stacked Area with step curve';
 
@@ -518,8 +530,70 @@ test('image 6 with curve step', () => {
     settings.curve.type = 'step';
     let actual = diagram.svgSource();
     actuals.push(actual);
-    
+
     expect(actuals[5]).toBe(expected[5]);
+});
+
+test('image 6 with step curve and marker', () => {
+    let settings = makeTestSettings();
+    settings.title = 'Testing Stacked Area with step curve and marker';
+    settings.markers = [
+        { date: moment(settings.fromDate).add(1, 'days') },
+        { date: moment(settings.toDate).subtract(1, 'days') }
+    ];
+
+    let diagram = stackedArea(settings);
+    diagram.draw();
+    expect(settings.curve.type).toEqual('linear');
+
+    settings.curve.type = 'step';
+    let actual = diagram.svgSource();
+    actuals.push(actual);
+
+    expect(actuals[6]).toBe(expected[6]);
+});
+
+test('image 7 with curve cardinal and tension 0.5', () => {
+    let settings = makeTestSettings();
+    settings.title = 'Testing Stacked Area curve cardinal and tension 0.5';
+    settings.markers = [
+        { date: moment(settings.fromDate).add(1, 'days') },
+        { date: moment(settings.toDate).subtract(1, 'days') }
+    ];
+    settings.curve = {
+        type: 'cardinal',
+        tension: 0.5
+    }
+
+    let diagram = stackedArea(settings);
+    diagram.draw();
+
+    let actual = diagram.svgSource();
+    actuals.push(actual);
+
+    expect(actuals[7]).toBe(expected[7]);
+});
+
+
+test('image 8 with curve catmullRom and alpha 0.5', () => {
+    let settings = makeTestSettings();
+    settings.title = 'Testing Stacked Area curve catmullRom and alpha 0.5';
+    settings.markers = [
+        { date: moment(settings.fromDate).add(1, 'days') },
+        { date: moment(settings.toDate).subtract(1, 'days') }
+    ];
+    settings.curve = {
+        type: 'catmullRom',
+        alpha: 0.5
+    }
+
+    let diagram = stackedArea(settings);
+    diagram.draw();
+
+    let actual = diagram.svgSource();
+    actuals.push(actual);
+
+    expect(actuals[8]).toBe(expected[8]);
 });
 
 
@@ -538,11 +612,11 @@ test('write test results into file', () => {
         writeTestFile('./test/actual' + i + '.svg', actuals[i]);
         let match = expected[i] == actuals[i];
         if (match) {
-            testFileContent += '<div class="image-set"><div class="box"><div class="label">Expected ' + (i+1) + '</div>' + expected[i] + '</div>'
-                + '<div class="box"><div class="label expected">Actual ' + (i+1) + ' is as expected</div>' + actuals[i] + '</div></div>';
+            testFileContent += '<div class="image-set"><div class="box"><div class="label">Expected ' + i + '</div>' + expected[i] + '</div>'
+                + '<div class="box"><div class="label expected">Actual ' + i + ' is as expected</div>' + actuals[i] + '</div></div>';
         } else {
-            testFileContent += '<div class="image-set"><div class="box"><div class="label">Expected ' + (i+1) + '</div>' + expected[i] + '</div>'
-                + '<div class="box"><div class="label mismatch">Actual ' + (i+1) + ' has a mismatch</div>' + actuals[i] + '</div></div>';
+            testFileContent += '<div class="image-set"><div class="box"><div class="label">Expected ' + i + '</div>' + expected[i] + '</div>'
+                + '<div class="box"><div class="label mismatch">Actual ' + i + ' has a mismatch</div>' + actuals[i] + '</div></div>';
 
         }
     }

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<body>
+    <svg id='actual1'></svg>
+    <script src="bundle.js"></script>
+    <script>
+        let moment = require('moment');
+        let stackedArea = require('stacked-area');
+        let NOW = '2018-12-12';
+
+        function makeTestSettings() {
+            let settings = {};
+            let now = moment(NOW);
+            settings.data = makeTestData();
+            settings.svg = document.getElementById('actual1');
+            settings.title = 'Testing the Stacked Area Chart';
+            settings.markers = [{date: moment(NOW).subtract(3, 'days')}];
+
+            settings.fromDate = moment(NOW).subtract(8, 'days');
+            settings.toDate = moment(NOW).subtract(1, 'days');
+
+            return settings;
+        }
+
+        function makeTestData() {
+            let testData = {};
+            testData.keys = ['Lowest', 'Low', 'Medium', 'High', 'Highest'];
+            testData.entries = [];
+            testData.entries.push({
+                date: moment(NOW).subtract(8, 'days'),
+                Highest: 2,
+                High: 1,
+                Medium: 4,
+                Low: 0,
+                Lowest: 1
+            }, {
+                    date: moment(NOW).subtract(7, 'days'),
+                    Highest: 2,
+                    High: 1,
+                    Medium: 4,
+                    Low: 0,
+                    Lowest: 1
+                }, {
+                    date: moment(NOW).subtract(6, 'days'),
+                    Highest: 3,
+                    High: 2,
+                    Medium: 6,
+                    Low: 1,
+                    Lowest: 2
+                }, {
+                    date: moment(NOW).subtract(5, 'days'),
+                    Highest: 1,
+                    High: 2,
+                    Medium: 3,
+                    Low: 1,
+                    Lowest: 0
+                }, {
+                    date: moment(NOW).subtract(4, 'days'),
+                    Highest: 2,
+                    High: 5,
+                    Medium: 6,
+                    Low: 3,
+                    Lowest: 2
+                }, {
+                    date: moment(NOW).subtract(3, 'days'),
+                    Highest: 1,
+                    High: 4,
+                    Medium: 3,
+                    Low: 1,
+                    Lowest: 0
+                }, {
+                    date: moment(NOW).subtract(2, 'days'),
+                    Highest: 1,
+                    High: 3,
+                    Medium: 2,
+                    Low: 1,
+                    Lowest: 1
+                }, {
+                    date: moment(NOW).subtract(1, 'days'),
+                    Highest: 0,
+                    High: 1,
+                    Medium: 1,
+                    Low: 0,
+                    Lowest: 0
+                }
+
+            );
+            return testData;
+        }
+
+        let settings = makeTestSettings();
+        let diagram = stackedArea(settings);
+        diagram.draw();
+    </script>
+</body>

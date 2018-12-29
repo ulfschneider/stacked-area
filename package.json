@@ -4,7 +4,7 @@
     "description": "Draw SVG Stacked Area Charts",
     "main": "stacked-area.js",
     "scripts": {
-        "test": "jest",
+        "test": "jest && browserify -r moment -r ./stacked-area.js:stacked-area -o ./test/bundle.js",
         "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
     },
     "jest": {
@@ -25,9 +25,12 @@
     "dependencies": {
         "d3": "^5.7.0",
         "js-base64": "^2.4.9",
-        "moment": "^2.22.2"
+        "moment": "^2.22.2",
+        "underscore": "^1.9.1"
     },
     "devDependencies": {
+        "acorn": "^6.0.4",
+        "browserify": "^16.2.3",
         "coveralls": "^3.0.2",
         "fs": "0.0.1-security",
         "jest": "^23.5.0"

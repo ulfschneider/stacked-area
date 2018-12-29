@@ -3,15 +3,18 @@
 const d3 = require('d3');
 const moment = require('moment');
 const Base64 = require('js-base64').Base64;
+const _ = require('underscore');
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 400;
 const DATE_FORMAT = 'YYYY-MM-DD';
 const DEFAULT_COLORS = ['#222', '#555', '#888', '#bbb'];
+const LEGEND_X = 10;
+const LEGEND_Y = 2.5;
+const LEGEND_PAD = 3;
 
 const CURVES = new Map([
     ['basis', d3.curveBasis],
-    ['bundle', d3.curveBundle],
     ['cardinal', d3.curveCardinal],
     ['catmullRom', d3.curveCatmullRom],
     ['linear', d3.curveLinear],
@@ -151,7 +154,7 @@ function validateStyles(settings) {
 
 function validateDrawOptions(settings) {
     if (!settings.drawOptions) {
-        settings.drawOptions = ['title', 'axis', 'legend', 'markers'];
+        settings.drawOptions = ['title', 'axis', 'legend', 'markers', 'focus'];
     }
 }
 
@@ -190,11 +193,9 @@ function prepareScales(settings) {
 function prepareDataFunctions(settings) {
 
     let curve = CURVES.get(settings.curve.type);
-    if (settings.curve.type == 'bundle' && settings.curve.beta) {
-        curve = curve.beta(settings.curve.beta);
-    } else if (settings.curve.type == 'cardinal' && settings.curve.tension) {
+    if (settings.curve.type == 'cardinal' && settings.curve.tension) {
         curve = curve.tension(settings.curve.tension);
-    } else if (settings.curve.type == 'catmullRom' && settings.curve.alpa) {
+    } else if (settings.curve.type == 'catmullRom' && settings.curve.alpha) {
         curve = curve.alpha(settings.curve.alpha);
     }
     //alpha, beta, tension
@@ -247,7 +248,6 @@ function drawLayers(settings) {
         })))
         .enter()
         .append('g')
-        .on('mouseover', function() {console.log(new Date())})
         .attr('class', 'layer');
 
     layer
@@ -261,6 +261,119 @@ function drawLayers(settings) {
         })
         .style('stroke-width', '.5')
         .attr('d', settings.area);
+
+}
+
+function drawFocus(settings) {
+
+    if (settings.drawOptions.includes('focus')) {
+        const lineHeight = settings.style.fontSize;
+
+        let drawFocusItem = function ({
+            text,
+            x,
+            y,
+            fill
+        }) {
+            return settings.g.append('text')
+                .attr('x', x)
+                .attr('y', y)
+                .attr('dy', dy(settings))
+                .attr('font-size', settings.style.fontSize + 'px')
+                .attr('font-family', settings.style.fontFamily)
+                .attr('class', 'focus-item')
+                .style('text-anchor', 'start')
+                .style('fill', fill)
+                .text(text);
+        }
+
+
+        let drawFocusItems = function (dataSet) {
+            settings.d3svg.selectAll('.focus-item').remove();
+
+            let x = settings.x(dataSet.date);
+            if (x < 0.5) {
+                //perfect left align if a marker sit at the most left boundary of the diagram
+                x = 0.5;
+            }
+            let y = LEGEND_Y + lineHeight / 2;
+            let row = .5;
+            let width = 0;
+
+            let y1 = settings.innerHeight;
+            if (!moment(dataSet.date).isSame(settings.toDate) || !settings.drawOptions.includes('axis')) {
+                //as we have an axis at the right side, we only draw
+                //the marker if its not directly on top of the axis
+
+                if (x > 0.5) {
+                    settings.g.append('line')
+                        .attr('x1', x)
+                        .attr('y1', y1)
+                        .attr('x2', x)
+                        .attr('y2', y - LEGEND_PAD - .5)
+                        .attr('class', 'focus-item')
+                        .style('stroke-width', '3')
+                        .style('stroke', settings.style.markers.backgroundColor);
+                }
+                settings.g.append('line')
+                    .attr('x1', x)
+                    .attr('y1', y1)
+                    .attr('x2', x)
+                    .attr('y2', y - LEGEND_PAD - .5)
+                    .attr('class', 'focus-item')
+                    .style('stroke-width', '1')
+                    .style('stroke', settings.style.markers.color);
+            }
+
+            let focus = settings.g.append("rect")
+                .attr('class', 'focus')
+                .style('display', 'none')
+                .attr('fill', settings.style.backgroundColor)
+                .attr('stroke', settings.style.color)
+                .attr('class', 'focus-item')
+                .attr('width', lineHeight)
+                .attr('height', lineHeight);
+
+            focus.attr('transform', 'translate(' + (x + 2) + ',' + (y - LEGEND_PAD) + ')')
+                .attr('height', (.5 + row + dataSet.__count) * lineHeight)
+                .style('display', null);
+
+            for (let key of _.keys(dataSet)) {
+                if (!key.startsWith('__')) {
+                    let item = drawFocusItem({
+                        text: key == 'date' ? moment(dataSet[key]).format(DATE_FORMAT) : dataSet[key] + ' ' + key,
+                        x: x + LEGEND_PAD + 2,
+                        y: key == 'date' ? y + row * lineHeight : y + (.5 + row) * lineHeight,
+                        fill: settings.style.color
+                    });
+                    try {
+                        let bbx = item.node().getBBox();
+                        width = Math.max(width, bbx.width + 2 * LEGEND_PAD);
+                    } catch (e) { }
+                    row++;
+                }
+            }
+            focus.attr('width', width);
+        }
+
+        let mousemove = function () {
+            let x0 = settings.x.invert(d3.mouse(this)[0]);
+            let dataSet = getDataSet(x0);
+            if (dataSet) {                                                          
+                drawFocusItems(dataSet);
+            } else {
+                settings.d3svg.selectAll('.focus-item').remove();
+            }
+        }
+
+        settings.g.append("rect")
+            .attr('width', settings.innerWidth)
+            .attr('height', settings.innerHeight)
+            .attr('fill', 'transparent')
+            .on('mousemove', mousemove)
+            .on('mouseout', function() {settings.d3svg.selectAll('.focus-item').remove();});
+            
+    }
 }
 
 function getColor(key, settings) {
@@ -278,6 +391,29 @@ function getStroke(key, settings) {
     } else {
         return settings.style.backgroundColor;
     }
+}
+
+function getDataSet(date) {
+    for (let entry of settings.data.entries) {
+        if (moment(entry.date).isSame(date, 'day')) {
+            //sort the result
+            let result = {
+                date: entry.date,
+                __sum: 0,
+                __count: 1
+            }
+            for (let key of settings.data.reverseKeys) {
+                if (_.isNumber(entry[key]) && entry[key] > 0) {
+                    //count only positive numbers
+                    result[key] = entry[key];
+                    result.__sum += entry[key];
+                    result.__count += 1;
+                }
+            }
+            return result;
+        }
+    }
+    return null;
 }
 
 function isDateInRange(date, settings) {
@@ -438,8 +574,6 @@ function drawTextWithBackground({
 
 function drawLegend(settings) {
 
-    const X = 10;
-    const Y = 2.5;
     const lineHeight = settings.style.fontSize;
 
     const drawLegendItem = function ({
@@ -481,7 +615,7 @@ function drawLegend(settings) {
         if (settings.title) {
             drawLegendItem({
                 text: settings.title,
-                x: X - 3,
+                x: LEGEND_X - LEGEND_PAD,
                 y: -35,
                 fill: settings.style.color
             });
@@ -491,8 +625,8 @@ function drawLegend(settings) {
     if (settings.drawOptions.includes('legend')) {
         let hasTitle = settings.legendTitle;
         let background = drawRectangle({
-            x: X - 3,
-            y: Y + lineHeight / 2 - 3,
+            x: LEGEND_X - LEGEND_PAD,
+            y: LEGEND_Y + lineHeight / 2 - LEGEND_PAD,
             width: settings.style.fontSize * 6,
             height: ((hasTitle ? 2 : 0.5) + settings.data.keys.length) * lineHeight,
             stroke: settings.style.color
@@ -502,24 +636,24 @@ function drawLegend(settings) {
         if (settings.legendTitle) {
             drawLegendItem({
                 text: settings.legendTitle,
-                x: X,
-                y: Y + lineHeight,
+                x: LEGEND_X,
+                y: LEGEND_Y + lineHeight,
                 fill: settings.style.color
             });
         }
 
         settings.data.reverseKeys.forEach((key, index) => {
             drawRectangle({
-                x: X,
-                y: Y + ((hasTitle ? 2 : 0.5) + index) * lineHeight,
+                x: LEGEND_X,
+                y: LEGEND_Y + ((hasTitle ? 2 : 0.5) + index) * lineHeight,
                 width: lineHeight,
                 height: lineHeight,
                 fill: getColor(key, settings)
             });
             let item = drawLegendItem({
                 text: key,
-                x: X + lineHeight * 1.62,
-                y: Y + ((hasTitle ? 2.5 : 1) + index) * lineHeight,
+                x: LEGEND_X + lineHeight * 1.62,
+                y: LEGEND_Y + ((hasTitle ? 2.5 : 1) + index) * lineHeight,
                 fill: settings.style.color
             });
 
@@ -528,7 +662,7 @@ function drawLegend(settings) {
             //To Do, In Progress and Done
             try {
                 let bbox = item.node().getBBox();
-                background.attr('width', bbox.width + 2.2 * lineHeight);
+                background.attr('width', bbox.width + 2.6 * lineHeight);
             } catch (e) {
                 //JSDOM is not able to operate with bbox
                 //therefore this code is not going to run in the tests
@@ -561,6 +695,7 @@ StackedArea.prototype.draw = function () {
     drawAxis(this.settings);
     drawMarkers(this.settings);
     drawLegend(this.settings);
+    drawFocus(this.settings);
 }
 
 /**
