@@ -14,6 +14,7 @@ function makeTestSettings() {
     settings = {};
     let now = moment(NOW);
     settings.data = makeTestData();
+    settings.keys = ['Lowest', 'Low', 'Medium', 'High', 'Highest'];
     settings.svg = document.createElement('svg');
     settings.title = 'Testing the Stacked Area Chart';
 
@@ -26,7 +27,6 @@ function makeTestSettings() {
 function makeTestData() {
     let testData = {};
     let now = moment(NOW);
-    testData.keys = ['Lowest', 'Low', 'Medium', 'High', 'Highest'];
     testData.entries = [];
     testData.entries.push({
         date: moment(now).subtract(8, 'days'),
@@ -184,7 +184,7 @@ test('data entries not an array', () => {
 test('no keys defined', () => {
     let settings = makeTestSettings();
     let diagram = stackedArea(settings);
-    delete settings.data.keys;
+    delete settings.keys;
     expect(() => {
         diagram.draw();
     }).toThrow(/No keys defined/);

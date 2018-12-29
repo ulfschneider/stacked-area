@@ -24879,10 +24879,10 @@ function validateData(settings) {
         throw "Empty data entries";
     }
 
-    if (!settings.data.keys) {
+    if (!settings.keys) {
         throw "No keys defined"
     } else {
-        settings.data.reverseKeys = [...settings.data.keys].reverse();
+        settings.reverseKeys = [...settings.keys].reverse();
     }
 }
 
@@ -25051,11 +25051,11 @@ function prepareDataFunctions(settings) {
     }
     settings.x.domain(xRange);
 
-    settings.stack.keys(settings.data.keys);
+    settings.stack.keys(settings.keys);
     settings.y.domain([0, d3.max(settings.data.entries, function (d) {
         let sum = 0;
-        for (let i = 0, n = settings.data.keys.length; i < n; i++) {
-            sum += d[settings.data.keys[i]];
+        for (let i = 0, n = settings.keys.length; i < n; i++) {
+            sum += d[settings.keys[i]];
         }
         return sum;
     })]);
@@ -25136,7 +25136,7 @@ function drawFocus(settings) {
                         .attr('x', x + LEGEND_PAD + 2,)
                         .attr('y', key == 'date' ? y + row * lineHeight : y + (0.5 + row) * lineHeight)
                         .style('display', null)
-                        .text(key == 'date' ? moment(dataSet[key]).format(DATE_FORMAT) : dataSet[key] + ' ' + key + ' aöslkdfjlöasdjf löasdfj lök')    
+                        .text(key == 'date' ? moment(dataSet[key]).format(DATE_FORMAT) : dataSet[key] + ' ' + key)    
                     try {
                         let bbx = focusItems[count].node().getBBox();
                         width = Math.max(width, bbx.width + 2 * LEGEND_PAD);
@@ -25146,7 +25146,7 @@ function drawFocus(settings) {
                 }
             }
             focus.attr('width', width);
-
+            
             if (x + 2 + width >= settings.innerWidth) {
                 let offset = - (2 + width);
                 focus.attr('x', x + offset);
@@ -25222,7 +25222,7 @@ function getColor(key, settings) {
     if (settings.style[key] && settings.style[key].color) {
         return settings.style[key].color;
     } else {
-        let index = settings.data.reverseKeys.indexOf(key) % DEFAULT_COLORS.length;
+        let index = settings.reverseKeys.indexOf(key) % DEFAULT_COLORS.length;
         return DEFAULT_COLORS[index];
     }
 }
@@ -25244,7 +25244,7 @@ function getDataSet(date) {
                 __sum: 0,
                 __count: 1
             }
-            for (let key of settings.data.reverseKeys) {
+            for (let key of settings.reverseKeys) {
                 if (_.isNumber(entry[key]) && entry[key] > 0) {
                     //count only positive numbers
                     result[key] = entry[key];
@@ -25470,7 +25470,7 @@ function drawLegend(settings) {
             x: LEGEND_X - LEGEND_PAD,
             y: LEGEND_Y + lineHeight / 2 - LEGEND_PAD,
             width: settings.style.fontSize * 6,
-            height: ((hasTitle ? 2 : 0.5) + settings.data.keys.length) * lineHeight,
+            height: ((hasTitle ? 2 : 0.5) + settings.keys.length) * lineHeight,
             stroke: settings.style.color
         });
 
@@ -25484,7 +25484,7 @@ function drawLegend(settings) {
             });
         }
 
-        settings.data.reverseKeys.forEach((key, index) => {
+        settings.reverseKeys.forEach((key, index) => {
             drawRectangle({
                 x: LEGEND_X,
                 y: LEGEND_Y + ((hasTitle ? 2 : 0.5) + index) * lineHeight,

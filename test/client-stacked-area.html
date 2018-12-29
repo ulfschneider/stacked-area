@@ -13,6 +13,7 @@
             let settings = {};
             let now = moment(NOW);
             settings.data = makeTestData();
+            settings.keys = ['Lowest', 'Low', 'Medium', 'High', 'Highest'];
             settings.svg = document.getElementById('actual1');
             settings.title = 'Testing the Stacked Area Chart';
             settings.markers = [{date: moment(NOW).subtract(3, 'days')}];
@@ -24,8 +25,7 @@
         }
 
         function makeTestData() {
-            let testData = {};
-            testData.keys = ['Lowest', 'Low', 'Medium', 'High', 'Highest'];
+            let testData = {};            
             testData.entries = [];
             testData.entries.push({
                 date: moment(NOW).subtract(8, 'days'),
