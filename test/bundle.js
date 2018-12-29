@@ -25090,27 +25090,8 @@ function drawFocus(settings) {
     if (settings.drawOptions.includes('focus')) {
         const lineHeight = settings.style.fontSize;
 
-        let drawFocusItem = function ({
-            text,
-            x,
-            y,
-            fill
-        }) {
-            return settings.g.append('text')
-                .attr('x', x)
-                .attr('y', y)
-                .attr('dy', dy(settings))
-                .attr('font-size', settings.style.fontSize + 'px')
-                .attr('font-family', settings.style.fontFamily)
-                .attr('class', 'focus-item')
-                .style('text-anchor', 'start')
-                .style('fill', fill)
-                .text(text);
-        }
-
-
         let drawFocusItems = function (dataSet) {
-            settings.d3svg.selectAll('.focus-item').remove();
+            hideFocus();
 
             let x = settings.x(dataSet.date);
             if (x < 0.5) {
@@ -25118,7 +25099,7 @@ function drawFocus(settings) {
                 x = 0.5;
             }
             let y = LEGEND_Y + lineHeight / 2;
-            let row = .5;
+            let row = 0.5;
             let width = 0;
 
             let y1 = settings.innerHeight;
@@ -25127,51 +25108,39 @@ function drawFocus(settings) {
                 //the marker if its not directly on top of the axis
 
                 if (x > 0.5) {
-                    settings.g.append('line')
+                    markerBackground
                         .attr('x1', x)
                         .attr('y1', y1)
                         .attr('x2', x)
-                        .attr('y2', y - LEGEND_PAD - .5)
-                        .attr('class', 'focus-item')
-                        .style('stroke-width', '3')
-                        .style('stroke', settings.style.markers.backgroundColor);
+                        .attr('y2', y - LEGEND_PAD - 0.5)
+                        .style('display', null);
                 }
-                settings.g.append('line')
+                marker
                     .attr('x1', x)
                     .attr('y1', y1)
                     .attr('x2', x)
                     .attr('y2', y - LEGEND_PAD - .5)
-                    .attr('class', 'focus-item')
-                    .style('stroke-width', '1')
-                    .style('stroke', settings.style.markers.color);
+                    .style('display', null);
             }
-
-            let focus = settings.g.append("rect")
-                .attr('class', 'focus')
-                .style('display', 'none')
-                .attr('fill', settings.style.backgroundColor)
-                .attr('stroke', settings.style.color)
-                .attr('class', 'focus-item')
-                .attr('width', lineHeight)
-                .attr('height', lineHeight);
 
             focus.attr('transform', 'translate(' + (x + 2) + ',' + (y - LEGEND_PAD) + ')')
                 .attr('height', (.5 + row + dataSet.__count) * lineHeight)
                 .style('display', null);
 
+            let count = 0;
             for (let key of _.keys(dataSet)) {
                 if (!key.startsWith('__')) {
-                    let item = drawFocusItem({
-                        text: key == 'date' ? moment(dataSet[key]).format(DATE_FORMAT) : dataSet[key] + ' ' + key,
-                        x: x + LEGEND_PAD + 2,
-                        y: key == 'date' ? y + row * lineHeight : y + (.5 + row) * lineHeight,
-                        fill: settings.style.color
-                    });
+                    focusItems[count]
+                        .attr('x', x + LEGEND_PAD + 2,)
+                        .attr('y', key == 'date' ? y + row * lineHeight : y + (0.5 + row) * lineHeight)
+                        .style('display', null)
+                        .text(key == 'date' ? moment(dataSet[key]).format(DATE_FORMAT) : dataSet[key] + ' ' + key)    
                     try {
-                        let bbx = item.node().getBBox();
+                        let bbx = focusItems[count].node().getBBox();
                         width = Math.max(width, bbx.width + 2 * LEGEND_PAD);
                     } catch (e) { }
                     row++;
+                    count++;
                 }
             }
             focus.attr('width', width);
@@ -25180,20 +25149,61 @@ function drawFocus(settings) {
         let mousemove = function () {
             let x0 = settings.x.invert(d3.mouse(this)[0]);
             let dataSet = getDataSet(x0);
-            if (dataSet) {                                                          
+            if (dataSet) {
                 drawFocusItems(dataSet);
             } else {
-                settings.d3svg.selectAll('.focus-item').remove();
+                hideFocus();
             }
         }
 
-        settings.g.append("rect")
+        let hideFocus = function () {
+            focus.style('display', 'none');
+            for (let focusItem of focusItems) {
+                focusItem.style('display', 'none');
+            }
+            markerBackground.style('display', 'none');
+            marker.style('display', 'none');
+        }
+
+        let focus = settings.g.append("rect")
+            .attr('fill', settings.style.backgroundColor)
+            .attr('stroke', settings.style.color)
+            .attr('class', 'focus-item')
+            .attr('width', lineHeight)
+            .attr('height', lineHeight)
+            .style('display', 'none');
+
+        let focusItems = [];
+        for (let i = 0; i < 40; i++) {
+            let focusItem = settings.g.append('text')
+                .attr('dy', dy(settings))
+                .attr('font-size', settings.style.fontSize + 'px')
+                .attr('font-family', settings.style.fontFamily)
+                .style('text-anchor', 'start')
+                .style('fill', settings.style.color)
+                .style('display', 'none')
+                .text('');
+
+            focusItems.push(focusItem);
+        }
+
+        let markerBackground = settings.g.append('line')
+            .style('display', 'none')        
+            .style('stroke-width', '3')
+            .style('stroke', settings.style.markers.backgroundColor);
+
+        let marker = settings.g.append('line')
+            .style('display', 'none')
+            .style('stroke-width', '1')
+            .style('stroke', settings.style.markers.color);
+
+        let overlay = settings.g.append("rect")
             .attr('width', settings.innerWidth)
             .attr('height', settings.innerHeight)
             .attr('fill', 'transparent')
             .on('mousemove', mousemove)
-            .on('mouseout', function() {settings.d3svg.selectAll('.focus-item').remove();});
-            
+            .on('mouseout', hideFocus);
+
     }
 }
 
