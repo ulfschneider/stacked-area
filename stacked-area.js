@@ -315,7 +315,7 @@ function drawFocus(settings) {
                         .attr('x', x + LEGEND_PAD + 2,)
                         .attr('y', key == 'date' ? y + row * lineHeight : y + (0.5 + row) * lineHeight)
                         .style('display', null)
-                        .text(key == 'date' ? moment(dataSet[key]).format(DATE_FORMAT) : dataSet[key] + ' ' + key + ' aöslkdfjlöasdjf löasdfj lök')    
+                        .text(key == 'date' ? moment(dataSet[key]).format(DATE_FORMAT) : dataSet[key] + ' ' + key)    
                     try {
                         let bbx = focusItems[count].node().getBBox();
                         width = Math.max(width, bbx.width + 2 * LEGEND_PAD);
