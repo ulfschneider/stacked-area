@@ -25121,9 +25121,11 @@ function drawFocus(settings) {
                     .attr('x2', x)
                     .attr('y2', y - LEGEND_PAD - .5)
                     .style('display', null);
-            }
+            }            
 
-            focus.attr('transform', 'translate(' + (x + 2) + ',' + (y - LEGEND_PAD) + ')')
+            focus
+                .attr('x', (x + 2))
+                .attr('y', (y - LEGEND_PAD))
                 .attr('height', (.5 + row + dataSet.__count) * lineHeight)
                 .style('display', null);
 
@@ -25134,7 +25136,7 @@ function drawFocus(settings) {
                         .attr('x', x + LEGEND_PAD + 2,)
                         .attr('y', key == 'date' ? y + row * lineHeight : y + (0.5 + row) * lineHeight)
                         .style('display', null)
-                        .text(key == 'date' ? moment(dataSet[key]).format(DATE_FORMAT) : dataSet[key] + ' ' + key)    
+                        .text(key == 'date' ? moment(dataSet[key]).format(DATE_FORMAT) : dataSet[key] + ' ' + key + ' aöslkdfjlöasdjf löasdfj lök')    
                     try {
                         let bbx = focusItems[count].node().getBBox();
                         width = Math.max(width, bbx.width + 2 * LEGEND_PAD);
@@ -25144,6 +25146,15 @@ function drawFocus(settings) {
                 }
             }
             focus.attr('width', width);
+
+            if (x + 2 + width >= settings.innerWidth) {
+                let offset = - (2 + width);
+                focus.attr('x', x + offset);
+                for(let focusItem of focusItems) {
+                    focusItem.attr('x', x + LEGEND_PAD + offset);
+                }
+            }
+
         }
 
         let mousemove = function () {
@@ -25197,7 +25208,7 @@ function drawFocus(settings) {
             .style('stroke-width', '1')
             .style('stroke', settings.style.markers.color);
 
-        let overlay = settings.g.append("rect")
+        settings.g.append("rect")
             .attr('width', settings.innerWidth)
             .attr('height', settings.innerHeight)
             .attr('fill', 'transparent')
