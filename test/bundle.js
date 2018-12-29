@@ -24879,10 +24879,10 @@ function validateData(settings) {
         throw "Empty data entries";
     }
 
-    if (!settings.keys) {
+    if (!settings.data.keys) {
         throw "No keys defined"
     } else {
-        settings.reverseKeys = [...settings.keys].reverse();
+        settings.data.reverseKeys = [...settings.data.keys].reverse();
     }
 }
 
@@ -25051,11 +25051,11 @@ function prepareDataFunctions(settings) {
     }
     settings.x.domain(xRange);
 
-    settings.stack.keys(settings.keys);
+    settings.stack.keys(settings.data.keys);
     settings.y.domain([0, d3.max(settings.data.entries, function (d) {
         let sum = 0;
-        for (let i = 0, n = settings.keys.length; i < n; i++) {
-            sum += d[settings.keys[i]];
+        for (let i = 0, n = settings.data.keys.length; i < n; i++) {
+            sum += d[settings.data.keys[i]];
         }
         return sum;
     })]);
@@ -25093,17 +25093,14 @@ function drawFocus(settings) {
         let drawFocusItems = function (dataSet) {
             hideFocus();
 
-            let x = settings.x(dataSet.date);
-            if (x < 0.5) {
-                //perfect left align if a marker sit at the most left boundary of the diagram
-                x = 0.5;
-            }
+            let x = settings.x(dataSet.date) + 0.5; //perfect align marker
             let y = LEGEND_Y + lineHeight / 2;
             let row = 0.5;
             let width = 0;
 
             let y1 = settings.innerHeight;
-            if (!moment(dataSet.date).isSame(settings.toDate) || !settings.drawOptions.includes('axis')) {
+            let y2 = 0;
+            if (!dataSet.date.isSame(settings.toDate) || !settings.drawOptions.includes('axis')) {
                 //as we have an axis at the right side, we only draw
                 //the marker if its not directly on top of the axis
 
@@ -25112,14 +25109,14 @@ function drawFocus(settings) {
                         .attr('x1', x)
                         .attr('y1', y1)
                         .attr('x2', x)
-                        .attr('y2', y - LEGEND_PAD - 0.5)
+                        .attr('y2', y2)
                         .style('display', null);
                 }
                 marker
                     .attr('x1', x)
                     .attr('y1', y1)
                     .attr('x2', x)
-                    .attr('y2', y - LEGEND_PAD - .5)
+                    .attr('y2', y2)
                     .style('display', null);
             }            
 
@@ -25159,8 +25156,8 @@ function drawFocus(settings) {
 
         let mousemove = function () {
             let x0 = settings.x.invert(d3.mouse(this)[0]);
-            let dataSet = getDataSet(x0);
-            if (dataSet) {
+            let dataSet = getDataSet(x0, settings);
+            if (dataSet && dataSet.__count > 1) {
                 drawFocusItems(dataSet);
             } else {
                 hideFocus();
@@ -25222,7 +25219,7 @@ function getColor(key, settings) {
     if (settings.style[key] && settings.style[key].color) {
         return settings.style[key].color;
     } else {
-        let index = settings.reverseKeys.indexOf(key) % DEFAULT_COLORS.length;
+        let index = settings.data.reverseKeys.indexOf(key) % DEFAULT_COLORS.length;
         return DEFAULT_COLORS[index];
     }
 }
@@ -25235,16 +25232,16 @@ function getStroke(key, settings) {
     }
 }
 
-function getDataSet(date) {
+function getDataSet(date, settings) {
     for (let entry of settings.data.entries) {
         if (moment(entry.date).isSame(date, 'day')) {
             //sort the result
             let result = {
-                date: entry.date,
+                date: moment(entry.date),
                 __sum: 0,
                 __count: 1
             }
-            for (let key of settings.reverseKeys) {
+            for (let key of settings.data.reverseKeys) {
                 if (_.isNumber(entry[key]) && entry[key] > 0) {
                     //count only positive numbers
                     result[key] = entry[key];
@@ -25320,11 +25317,7 @@ function drawAxis(settings) {
 function drawMarkers(settings) {
 
     let mark = function (date, label) {
-        let x1 = settings.x(moment(date));
-        if (x1 < 0.5) {
-            //perfect left align if a marker sit at the most left boundary of the diagram
-            x1 = 0.5;
-        }
+        let x1 = settings.x(moment(date)) + 0.5;
         let y1 = settings.innerHeight;
         let y2 = 0;
         if (!moment(date).isSame(settings.toDate) || !settings.drawOptions.includes('axis')) {
@@ -25470,7 +25463,7 @@ function drawLegend(settings) {
             x: LEGEND_X - LEGEND_PAD,
             y: LEGEND_Y + lineHeight / 2 - LEGEND_PAD,
             width: settings.style.fontSize * 6,
-            height: ((hasTitle ? 2 : 0.5) + settings.keys.length) * lineHeight,
+            height: ((hasTitle ? 2 : 0.5) + settings.data.keys.length) * lineHeight,
             stroke: settings.style.color
         });
 
@@ -25484,7 +25477,7 @@ function drawLegend(settings) {
             });
         }
 
-        settings.reverseKeys.forEach((key, index) => {
+        settings.data.reverseKeys.forEach((key, index) => {
             drawRectangle({
                 x: LEGEND_X,
                 y: LEGEND_Y + ((hasTitle ? 2 : 0.5) + index) * lineHeight,
