@@ -1,8 +1,14 @@
 {
     "name": "stacked-area",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Draw SVG Stacked Area Charts",
     "main": "stacked-area.js",
+    "keywords": [
+        "stacked",
+        "area",
+        "svg",
+        "d3"
+    ],
     "scripts": {
         "test": "jest && browserify -r moment -r ./stacked-area.js:stacked-area -o ./test/bundle.js && documentation build stacked-area.js -f md > README.md",
         "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
