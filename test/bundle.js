@@ -25506,9 +25506,109 @@ function drawLegend(settings) {
     }
 }
 
-
-
-
+/**
+* <a href='https://travis-ci.com/ulfschneider/stacked-area'><img src='https://travis-ci.com/ulfschneider/stacked-area.svg?branch=master'/></a>
+ * <a href='https://coveralls.io/github/ulfschneider/stacked-area?branch=master'><img src='https://coveralls.io/repos/github/ulfschneider/stacked-area/badge.svg?branch=master' /></a>
+ * <a href='https://badge.fury.io/js/stacked-area'><img src='https://badge.fury.io/js/stacked-area.svg' /></a>
+ *
+ * Draw SVG Stacked Area Charts.
+ * 
+ * <img src="https://raw.githubusercontent.com/ulfschneider/stacked-area/master/stacked-area.png"/>
+ *
+ * Install in your Node project with 
+ * <pre>
+ * npm i stacked-area
+ * </pre>
+ * 
+ * and use it inside your code via 
+ * 
+ * <pre>
+ * const stackedArea = require('stacked-area');
+ * </pre>
+ * 
+ * or, alternatively 
+ * 
+ * <pre>
+ * import stackedArea from 'stacked-area';
+ * </pre>
+ * 
+ * Create the new stackedArea objects via
+ * 
+ * <pre>
+ * let diagram = stackedArea(settings);
+ * </pre>
+ * @constructor
+ * @param {Object} settings - The configuration object for the diagram. 
+ * All data for the diagram is provided with this object. 
+ * In this configuration object, whenever a date is to be given, 
+ * it can be an [ISO 8601 String](https://en.wikipedia.org/wiki/ISO_8601)
+ * or a JavaScript [Date](https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Date) object.
+ * A [Moment](https://momentjs.com) object is also fine.
+ * @param {String} [settings.title] - The title for the diagram.
+ * @param {String} [settings.legendTitle] - The title for the legend.
+ * @param {Object} settings.svg - The DOM tree element, wich must be an svg tag.
+ * The diagram will be attached to this DOM tree element. Example:
+ * <pre>settings.svg = document.getElementById('stackedAreaDiagram');</pre>
+ * <code>'stackedAreaDiagram'</code> is the id of a svg tag.
+ * @param {{top: Number, right: Number, bottom: Number, right: Number}} [settings.margin] - The margin for the diagram.
+ * Default values are:
+ * <pre>settings.margin = {
+ * top: 50,
+ * right: 50,
+ * bottom: 50,
+ * left: 50 }
+ * </pre>
+ * @param {String|Date} [settings.fromDate] - The start date for the diagram. Example:
+ * <pre>settings.fromDate = '2018-09-01';</pre>
+ * @param {String|Date} [settings.toDate] - The end date for the diagram. Example:
+ * <pre>settings.toDate = '2018-09-05';</pre>
+ * @param {{date:(String|Date), label:String}[]} [settings.markers] - Highlight specific dates inside of the diagram
+ * with markers. Each marker is an object with a date for the marker and an optional label. Example:
+ * <pre>settings.markers = [
+ * { date: '2018-09-03', label: 'M1' },
+ * { date: '2018-09-10', label: 'M2' }];</pre>
+ * @param {String[]} [settings.drawOptions] - An array to determine the parts to be drawn. Possible options:
+ * <pre>'title' - draw the title
+ * 'axis' - draw the x and y axis
+ * 'legend' - draw the legend information
+ * 'markers' - draw the markers
+ * 'focus' - draw detailed data when hovering the diagram
+ * </pre> By default all of these draw options are on.
+ * @param {Object} [settings.style] - Influence the appearance of the diagram with typeface and colors. The defaults are:
+ * <pre>settings.style = {
+ * fontSize: 12,
+ * fontFamily: 'sans-serif',
+ * color: '#222',
+ * backgroundColor: '#fff',
+ * axis: {color: '#222'},
+ * markers: {color: '#222', backgroundColor: '#fff'}
+ * }</pre>
+ * You may configure colors for each stacked area, like for a chart with stacked areas named
+ * 'Highest', 'High', 'Medium' and 'Low':
+ * <pre>
+ * settings.style.Highest = { color: 'chartreuse', stroke: 'white' };
+ * settings.style.High = { color: 'cornflowerblue', stroke: 'white' };
+ * settings.style.Medium = { color: 'darkorange', stroke: 'white' };
+ * settings.style.Low = { color: 'firebrick', stroke: 'white' };
+ * </pre>
+ * @param {{keys: String[], entries: Object[]}} settings.data - The data for the diagram. Example:
+ * <pre>settings.data = {
+ * keys: ['Low', 'Medium', 'High', 'Highest'],
+ * entries: [
+ * { date: '2018-09-03', Highest: 0, High: 0, Medium: 0, Low: 0 },
+ * { date: '2018-09-04', Highest: 1, High: 0, Medium: 0, Low: 0 },
+ * { date: '2018-09-05', Highest: 1, High: 1, Medium: 0, Low: 0 },
+ * { date: '2018-09-06', Highest: 1, High: 0, Medium: 1, Low: 1 },
+ * { date: '2018-09-07', Highest: 2, High: 1, Medium: 0, Low: 2 },
+ * { date: '2018-09-08', Highest: 1, High: 1, Medium: 2, Low: 2 },
+ * { date: '2018-09-09', Highest: 0, High: 0, Medium: 1, Low: 5 },
+ * { date: '2018-09-10', Highest: 1, High: 1, Medium: 0, Low: 5 }
+ * ]}</pre>
+ * Each entry object must contain a date and the counts for the keys.
+ * Each key will be rendered as a stacked layer.
+ * The rendering of the stacked layers will follow the order
+ * of the keys. Hereby left to right keys leads to stacked areas from bottom to top.
+ */
 function StackedArea(settings) {
     this.settings = settings;
     this.defaultWidth = DEFAULT_WIDTH;
@@ -25547,7 +25647,7 @@ StackedArea.prototype.remove = function () {
 
 /**
  * Draw the Stacked Area Chart inside of the provided <code>settings.svg</code> DOM tree element 
- * and return the result as a string which can be assigned to the src attribute of an HTML img tag.
+ * and return the result as a string which can be assigned to the SRC attribute of an HTML IMG tag.
  * @returns {string}
  */
 StackedArea.prototype.imageSource = function () {
@@ -25556,7 +25656,11 @@ StackedArea.prototype.imageSource = function () {
     return 'data:image/svg+xml;base64,' + Base64.encode(html);
 }
 
-
+/**
+ * Draw the Stacked Area Chart inside of the provided <code>settings.svg</code> DOM tree element 
+ * and return the result as a SVG tag string.
+ * @returns {string}
+ */
 StackedArea.prototype.svgSource = function () {
     this.draw();
     return this.settings.svg.outerHTML;
