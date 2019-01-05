@@ -183,6 +183,12 @@ function prepareSVG(settings) {
     }
 }
 
+
+function getStartOfDay(date) {
+    return moment(moment(date).format('YYYY-MM-DD'));
+}
+
+
 function prepareScales(settings) {
     settings.x = d3.scaleTime()
         .range([0, settings.innerWidth]);
@@ -203,7 +209,7 @@ function prepareDataFunctions(settings) {
     settings.area = d3.area()
         .curve(curve)
         .x(function (d) {
-            return settings.x(moment(d.data.date));
+            return settings.x(getStartOfDay(d.data.date));
         })
         .y0(function (d) {
             return settings.y(d[0]);
@@ -212,14 +218,12 @@ function prepareDataFunctions(settings) {
             return settings.y(d[1]);
         });
 
-    settings.fromDate = settings.fromDate ? moment(settings.fromDate)
-        .startOf('day') : settings.fromDate;
-    settings.toDate = settings.toDate ? moment(settings.toDate)
-        .startOf('day') : settings.toDate;
+    settings.fromDate = settings.fromDate ? getStartOfDay(settings.fromDate) : settings.fromDate;
+    settings.toDate = settings.toDate ? getStartOfDay(settings.toDate) : settings.toDate;
 
 
     let xRange = d3.extent(settings.data.entries, function (d) {
-        return moment(d.date);
+        return getStartOfDay(d.date);
     });
 
     if (settings.fromDate) {
@@ -416,7 +420,7 @@ function getDataSet(date, settings) {
         if (moment(entry.date).isSame(date, 'day')) {
             //sort the result
             let result = {
-                date: moment(entry.date),
+                date: getStartOfDay(entry.date),
                 __sum: 0,
                 __count: 1
             }
@@ -436,10 +440,10 @@ function getDataSet(date, settings) {
 
 function isDateInRange(date, settings) {
     let dataFromDate, dataToDate;
-    let momentDate = moment(date);
+    let momentDate = getStartOfDay(date);
 
-    dataFromDate = moment(settings.data.entries[0].date);
-    dataToDate = moment(settings.data.entries[settings.data.entries.length - 1].date);
+    dataFromDate = getStartOfDay(settings.data.entries[0].date);
+    dataToDate = getStartOfDay(settings.data.entries[settings.data.entries.length - 1].date);
 
     if (settings.fromDate && momentDate.isBefore(settings.fromDate)) {
         return false;
@@ -496,10 +500,10 @@ function drawAxis(settings) {
 function drawMarkers(settings) {
 
     let mark = function (date, label) {
-        let x1 = settings.x(moment(date)) + 0.5;
+        let x1 = settings.x(getStartOfDay(date)) + 0.5;
         let y1 = settings.innerHeight;
         let y2 = 0;
-        if (!moment(date).isSame(settings.toDate) || !settings.drawOptions.includes('axis')) {
+        if (!getStartOfDay(date).isSame(settings.toDate) || !settings.drawOptions.includes('axis')) {
             //as we have an axis at the right side, we only draw
             //the marker if its not directly on top of the axis
 

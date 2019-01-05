@@ -3,7 +3,7 @@
 const fs = require('fs');
 const stackedArea = require('stacked-area');
 const moment = require('moment');
-const NOW = '2018-09-11';
+const NOW = '2018-09-11 12:00';
 const NUMBER_OF_TEST_IMAGES = 9;
 let actuals = [];
 let expected = [];
