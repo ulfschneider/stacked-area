@@ -1,6 +1,6 @@
 {
     "name": "stacked-area",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "Draw SVG Stacked Area Charts",
     "main": "stacked-area.js",
     "keywords": [

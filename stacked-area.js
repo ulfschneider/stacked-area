@@ -338,7 +338,13 @@ function drawFocus(settings) {
         }
 
         let mousemove = function () {
-            let date = settings.x.invert(d3.mouse(this)[0]);
+            let date = getStartOfDay(settings.x.invert(d3.mouse(this)[0]));
+            let lastDate = getLastEntryDate(settings);
+
+            if (date.isAfter(lastDate)) {
+                date = lastDate;
+            }
+
             let dataSet = getDataSet(date, settings);
             if (dataSet && dataSet.__count > 1) {
                 drawFocusItems(dataSet);
@@ -442,8 +448,8 @@ function isDateInRange(date, settings) {
     let dataFromDate, dataToDate;
     let momentDate = getStartOfDay(date);
 
-    dataFromDate = getStartOfDay(settings.data.entries[0].date);
-    dataToDate = getStartOfDay(settings.data.entries[settings.data.entries.length - 1].date);
+    dataFromDate = getFirstEntryDate(settings);
+    dataToDate = getLastEntryDate(settings);
 
     if (settings.fromDate && momentDate.isBefore(settings.fromDate)) {
         return false;
@@ -544,6 +550,15 @@ function drawMarkers(settings) {
             }
         });
     }
+}
+
+
+function getFirstEntryDate(settings) {
+    return getStartOfDay(settings.data.entries[0].date);
+}
+
+function getLastEntryDate(settings) {
+    return getStartOfDay(settings.data.entries[settings.data.entries.length - 1].date);
 }
 
 
