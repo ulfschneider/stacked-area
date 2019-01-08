@@ -301,7 +301,7 @@ function drawFocus(settings) {
                     .attr('x2', x)
                     .attr('y2', y2)
                     .style('display', null);
-            }            
+            }
 
             focus
                 .attr('x', (x + 2))
@@ -313,10 +313,10 @@ function drawFocus(settings) {
             for (let key of _.keys(dataSet)) {
                 if (!key.startsWith('__')) {
                     focusItems[count]
-                        .attr('x', x + LEGEND_PAD + 2,)
+                        .attr('x', x + LEGEND_PAD + 2)
                         .attr('y', key == 'date' ? y + row * lineHeight : y + (0.5 + row) * lineHeight)
                         .style('display', null)
-                        .text(key == 'date' ? moment(dataSet[key]).format(DATE_FORMAT) : round(dataSet[key]) + ' ' + key)    
+                        .text(key == 'date' ? moment(dataSet[key]).format(DATE_FORMAT) : round(dataSet[key]) + ' ' + key)
                     try {
                         let bbx = focusItems[count].node().getBBox();
                         width = Math.max(width, bbx.width + 2 * LEGEND_PAD);
@@ -326,11 +326,11 @@ function drawFocus(settings) {
                 }
             }
             focus.attr('width', width);
-            
+
             if (x + 2 + width >= settings.innerWidth) {
                 let offset = - (2 + width);
                 focus.attr('x', x + offset);
-                for(let focusItem of focusItems) {
+                for (let focusItem of focusItems) {
                     focusItem.attr('x', x + LEGEND_PAD + offset);
                 }
             }
@@ -385,7 +385,7 @@ function drawFocus(settings) {
         }
 
         let markerBackground = settings.g.append('line')
-            .style('display', 'none')        
+            .style('display', 'none')
             .style('stroke-width', '3')
             .style('stroke', settings.style.markers.backgroundColor);
 
@@ -558,7 +558,12 @@ function getFirstEntryDate(settings) {
 }
 
 function getLastEntryDate(settings) {
-    return getStartOfDay(settings.data.entries[settings.data.entries.length - 1].date);
+    let entry = getStartOfDay(settings.data.entries[settings.data.entries.length - 1].date);
+    if (settings.toDate && settings.toDate.isBefore(entry)) {
+        return settings.toDate;
+    } else {
+        return entry;
+    }
 }
 
 
