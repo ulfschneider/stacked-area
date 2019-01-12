@@ -55,6 +55,8 @@ let diagram = stackedArea(settings);
     -   `settings.legendTitle` **[String][11]?** The title for the legend.
     -   `settings.svg` **[Object][7]** The DOM tree element, wich must be an svg tag.
         The diagram will be attached to this DOM tree element. Example:<pre>settings.svg = document.getElementById('stackedAreaDiagram');</pre><code>'stackedAreaDiagram'</code> is the id of a svg tag.
+    -   `settings.width` **[Number][12]?** The width of the diagram
+    -   `settings.height` **[Number][12]?** The height of the diagram
     -   `settings.margin` **{top: [Number][12], right: [Number][12], bottom: [Number][12], right: [Number][12]}?** The margin for the diagram.
         Default values are:<pre>settings.margin = {
         top: 50,

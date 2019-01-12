@@ -24890,22 +24890,22 @@ function validateMargins(settings) {
     if (!settings.margin) {
         settings.margin = {
             top: 50,
-            right: 50,
+            right: 70,
             bottom: 50,
-            left: 50
+            left: 40
         }
     } else {
         if (!('top' in settings.margin)) {
             settings.margin.top = 50;
         }
         if (!('right' in settings.margin)) {
-            settings.margin.right = 50;
+            settings.margin.right = 70;
         }
         if (!('bottom' in settings.margin)) {
             settings.margin.bottom = 50;
         }
         if (!('left' in settings.margin)) {
-            settings.margin.left = 50;
+            settings.margin.left = 40;
         }
     }
 
@@ -25301,6 +25301,7 @@ function drawAxis(settings) {
         xAxis
             .selectAll('text')
             .style('fill', settings.style.axis.color)
+            .attr('text-anchor', 'start')
             .attr('font-size', settings.style.fontSize + 'px')
             .attr('font-family', settings.style.fontFamily);
 
@@ -25318,6 +25319,7 @@ function drawAxis(settings) {
         yAxis
             .selectAll('text')
             .style('fill', settings.style.axis.color)
+            .style('text-anchor', 'start')
             .attr('font-size', settings.style.fontSize + 'px')
             .attr('font-family', settings.style.fontFamily);
     }
@@ -25357,7 +25359,7 @@ function drawMarkers(settings) {
             x: x1,
             y: -15,
             color: settings.style.markers.color,
-            textAnchor: 'middle',
+            textAnchor: 'start',
             background: settings.style.backgroundColor,
             settings: settings
         });
@@ -25579,6 +25581,8 @@ function drawLegend(settings) {
  * The diagram will be attached to this DOM tree element. Example:
  * <pre>settings.svg = document.getElementById('stackedAreaDiagram');</pre>
  * <code>'stackedAreaDiagram'</code> is the id of a svg tag.
+ * @param {Number} [settings.width] - The width of the diagram
+ * @param {Number} [settings.height] - The height of the diagram
  * @param {{top: Number, right: Number, bottom: Number, right: Number}} [settings.margin] - The margin for the diagram.
  * Default values are:
  * <pre>settings.margin = {

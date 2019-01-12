@@ -213,11 +213,11 @@ test('default margins', () => {
     expect(settings.margin.top)
         .toBe(50);
     expect(settings.margin.right)
-        .toBe(50);
+        .toBe(70);
     expect(settings.margin.bottom)
         .toBe(50);
     expect(settings.margin.left)
-        .toBe(50);
+        .toBe(40);
 });
 
 test('inner width and inner height', () => {
@@ -239,11 +239,11 @@ test('set top margin', () => {
     expect(settings.margin.top)
         .toBe(10);
     expect(settings.margin.right)
-        .toBe(50);
+        .toBe(70);
     expect(settings.margin.bottom)
         .toBe(50);
     expect(settings.margin.left)
-        .toBe(50);
+        .toBe(40);
     expect(settings.innerWidth)
         .toBe(800 - settings.margin.left - settings.margin.right);
     expect(settings.innerHeight)
@@ -262,7 +262,7 @@ test('set right margin', () => {
     expect(settings.margin.bottom)
         .toBe(50);
     expect(settings.margin.left)
-        .toBe(50);
+        .toBe(40);
     expect(settings.innerWidth)
         .toBe(800 - settings.margin.left - settings.margin.right);
     expect(settings.innerHeight)
@@ -277,11 +277,11 @@ test('set bottom margin', () => {
     expect(settings.margin.top)
         .toBe(50);
     expect(settings.margin.right)
-        .toBe(50);
+        .toBe(70);
     expect(settings.margin.bottom)
         .toBe(10);
     expect(settings.margin.left)
-        .toBe(50);
+        .toBe(40);
     expect(settings.innerWidth)
         .toBe(800 - settings.margin.left - settings.margin.right);
     expect(settings.innerHeight)
@@ -296,7 +296,7 @@ test('set left margin', () => {
     expect(settings.margin.top)
         .toBe(50);
     expect(settings.margin.right)
-        .toBe(50);
+        .toBe(70);
     expect(settings.margin.bottom)
         .toBe(50);
     expect(settings.margin.left)
@@ -315,7 +315,7 @@ test('set left and top margin to 0', () => {
     expect(settings.margin.top)
         .toBe(0);
     expect(settings.margin.right)
-        .toBe(50);
+        .toBe(70);
     expect(settings.margin.bottom)
         .toBe(50);
     expect(settings.margin.left)
