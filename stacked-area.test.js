@@ -4,7 +4,7 @@ const fs = require('fs');
 const stackedArea = require('stacked-area');
 const moment = require('moment');
 const NOW = '2018-09-11 12:00';
-const NUMBER_OF_TEST_IMAGES = 9;
+const NUMBER_OF_TEST_IMAGES = 10;
 let actuals = [];
 let expected = [];
 let settings;
@@ -86,6 +86,24 @@ function makeTestData() {
             Lowest: 0
         }
 
+    );
+    return testData;
+}
+
+function makeArrayOfArraysTestData() {
+    let testData = {};
+    testData.keys = ['Lowest', 'Low', 'Medium', 'High', 'Highest'];
+    let now = moment(NOW);
+    testData.entries = [];
+    testData.entries.push(
+        [moment(now).subtract(8, 'days'), 1, 0, 4, 1, 2],
+        [moment(now).subtract(7, 'days'), 1, 0, 4, 1, 2],
+        [moment(now).subtract(6, 'days'), 2, 1, 6, 2, 3],
+        [moment(now).subtract(5, 'days'), 0, 1, 3, 2, 1],
+        [moment(now).subtract(4, 'days'), 2, 3, 6, 5, 2],
+        [moment(now).subtract(3, 'days'), 0, 1, 3, 4, 1],
+        [moment(now).subtract(2, 'days'), 1, 1, 2, 3, 1],
+        [moment(now).subtract(1, 'days'), 0, 0, 1, 1, 0]
     );
     return testData;
 }
@@ -594,6 +612,25 @@ test('image 8 with curve catmullRom and alpha 0.5', () => {
     actuals.push(actual);
 
     expect(actuals[8]).toBe(expected[8]);
+});
+
+test('image 9 with data given as array of arrays', () => {
+    let settings = makeTestSettings();
+    settings.data = makeArrayOfArraysTestData();
+    settings.title = 'Testing Stacked Area with array of array data entries';
+    settings.markers = [
+        { date: settings.fromDate },
+        { date: settings.toDate }
+    ];
+
+    let diagram = stackedArea(settings);
+
+    diagram.draw();
+
+    let actual = diagram.svgSource();
+    actuals.push(actual);
+
+    expect(actuals[9]).toBe(expected[9]);
 });
 
 

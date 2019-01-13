@@ -63,6 +63,30 @@ function validateData(settings) {
     } else {
         settings.data.reverseKeys = [...settings.data.keys].reverse();
     }
+
+    if (_.isArray(settings.data.entries[0])) {
+        transformData(settings);
+    }
+}
+
+function transformData(settings) {
+    //the given data entries itself are arrays    
+    let transformedEntries = [];    
+    for (let entry of settings.data.entries) {
+        let transformedEntry = {}
+
+        //the first value of the array must be the date
+        transformedEntry.date = moment(entry[0]);
+
+        //the following entries must be the values in order of the given keys
+        let i = 1;
+        for(let key of settings.data.keys) {
+            transformedEntry[key] = entry[i];
+            i++;
+        }
+        transformedEntries.push(transformedEntry);
+    }
+    settings.data.entries = transformedEntries;
 }
 
 function validateMargins(settings) {
@@ -221,7 +245,6 @@ function prepareDataFunctions(settings) {
     settings.fromDate = settings.fromDate ? getStartOfDay(settings.fromDate) : settings.fromDate;
     settings.toDate = settings.toDate ? getStartOfDay(settings.toDate) : settings.toDate;
 
-
     let xRange = d3.extent(settings.data.entries, function (d) {
         return getStartOfDay(d.date);
     });
@@ -235,6 +258,7 @@ function prepareDataFunctions(settings) {
     settings.x.domain(xRange);
 
     settings.stack.keys(settings.data.keys);
+    
     settings.y.domain([0, d3.max(settings.data.entries, function (d) {
         let sum = 0;
         for (let i = 0, n = settings.data.keys.length; i < n; i++) {
@@ -760,8 +784,8 @@ function drawLegend(settings) {
  * The diagram will be attached to this DOM tree element. Example:
  * <pre>settings.svg = document.getElementById('stackedAreaDiagram');</pre>
  * <code>'stackedAreaDiagram'</code> is the id of a svg tag.
- * @param {Number} [settings.width] - The width of the diagram
- * @param {Number} [settings.height] - The height of the diagram
+ * @param {Number} [settings.width] - The width of the diagram in pixels, the margin settings have to be included in that width.
+ * @param {Number} [settings.height] - The height of the diagram in pixels, the margin settings have to be included in that height.
  * @param {{top: Number, right: Number, bottom: Number, right: Number}} [settings.margin] - The margin for the diagram.
  * Default values are:
  * <pre>settings.margin = {
