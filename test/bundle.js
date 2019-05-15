@@ -24897,7 +24897,7 @@ function transformData(settings) {
         let transformedEntry = {}
 
         //the first value of the array must be the date
-        transformedEntry.date = moment(entry[0]);
+        transformedEntry.date = getMoment(entry[0]);
 
         //the following entries must be the values in order of the given keys
         let i = 1;
@@ -25030,7 +25030,11 @@ function prepareSVG(settings) {
 
 
 function getStartOfDay(date) {
-    return moment(moment(date).format('YYYY-MM-DD'));
+    return getMoment(date).startOf('day');
+}
+
+function getMoment(date) {
+    return moment(date);
 }
 
 
@@ -25161,7 +25165,7 @@ function drawFocus(settings) {
                         .attr('x', x + LEGEND_PAD + 2)
                         .attr('y', key == 'date' ? y + row * lineHeight : y + (0.5 + row) * lineHeight)
                         .style('display', null)
-                        .text(key == 'date' ? moment(dataSet[key]).format(DATE_FORMAT) : round(dataSet[key]) + ' ' + key)
+                        .text(key == 'date' ? getMoment(dataSet[key]).format(DATE_FORMAT) : round(dataSet[key]) + ' ' + key)
                     try {
                         let bbx = focusItems[count].node().getBBox();
                         width = Math.max(width, bbx.width + 2 * LEGEND_PAD);
@@ -25268,7 +25272,7 @@ function getStroke(key, settings) {
 
 function getDataSet(date, settings) {
     for (let entry of settings.data.entries) {
-        if (moment(entry.date).isSame(date, 'day')) {
+        if (getMoment(entry.date).isSame(date, 'day')) {
             //sort the result
             let result = {
                 date: getStartOfDay(entry.date),
@@ -25379,7 +25383,7 @@ function drawMarkers(settings) {
         }
 
         drawTextWithBackground({
-            text: (label ? label : moment(date).format(DATE_FORMAT)),
+            text: (label ? label : getMoment(date).format(DATE_FORMAT)),
             x: x1,
             y: -15,
             color: settings.style.markers.color,
