@@ -24892,7 +24892,7 @@ function validateData(settings) {
 
 function transformData(settings) {
     //the given data entries itself are arrays    
-    let transformedEntries = [];    
+    let transformedEntries = [];
     for (let entry of settings.data.entries) {
         let transformedEntry = {}
 
@@ -24901,7 +24901,7 @@ function transformData(settings) {
 
         //the following entries must be the values in order of the given keys
         let i = 1;
-        for(let key of settings.data.keys) {
+        for (let key of settings.data.keys) {
             transformedEntry[key] = entry[i];
             i++;
         }
@@ -25083,7 +25083,7 @@ function prepareDataFunctions(settings) {
     settings.x.domain(xRange);
 
     settings.stack.keys(settings.data.keys);
-    
+
     settings.y.domain([0, d3.max(settings.data.entries, function (d) {
         let sum = 0;
         for (let i = 0, n = settings.data.keys.length; i < n; i++) {
@@ -25167,9 +25167,12 @@ function drawFocus(settings) {
                         .style('display', null)
                         .text(key == 'date' ? getMoment(dataSet[key]).format(DATE_FORMAT) : round(dataSet[key]) + ' ' + key)
                     try {
-                        let bbx = focusItems[count].node().getBBox();
-                        width = Math.max(width, bbx.width + 2 * LEGEND_PAD);
-                    } catch (e) { }
+                        let length = focusItems[count].node().getComputedTextLength();
+                        width = Math.max(width, length + 2 * LEGEND_PAD);
+                    } catch (e) {
+                        //JSDOM is not able to operate with getComputedTextLength
+                        //therefore this code is not going to run in the tests
+                    }
                     row++;
                     count++;
                 }
@@ -25449,19 +25452,19 @@ function drawTextWithBackground({
         .text(text);
 
     try {
-        let bbx = txt.node().getBBox();
+        let length = txt.node().getComputedTextLength();
         if (textAnchor == 'middle') {
-            bkg.attr('x', x - bbx.width / 2);
+            bkg.attr('x', x - length / 2);
         } else if (textAnchor == 'end') {
-            bkg.attr('x', x - bbx.width);
+            bkg.attr('x', x - length);
         } else {
             bkg.attr('x', x);
         }
         bkg.attr('y', y - settings.style.fontSize / 2)
-            .attr('width', bbx.width)
+            .attr('width', length)
             .attr('height', settings.style.fontSize);
     } catch (e) {
-        //JSDOM is not able to operate with bbox
+        //JSDOM is not able to operate with getComputedTextLength
         //therefore this code is not going to run in the tests
     }
 }
@@ -25555,10 +25558,10 @@ function drawLegend(settings) {
             //and use progress because it has the most length of 
             //To Do, In Progress and Done
             try {
-                let bbox = item.node().getBBox();
-                background.attr('width', bbox.width + 2.6 * lineHeight);
+                let length = item.node().getComputedTextLength();
+                background.attr('width', length + 2.6 * lineHeight);
             } catch (e) {
-                //JSDOM is not able to operate with bbox
+                //JSDOM is not able to operate with getComputedTextLength
                 //therefore this code is not going to run in the tests
             }
         });
