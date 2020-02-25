@@ -1,6 +1,6 @@
 {
     "name": "stacked-area",
-    "version": "1.5.2",
+    "version": "1.5.3",
     "description": "Draw SVG Stacked Area Charts",
     "main": "stacked-area.js",
     "keywords": [
@@ -27,7 +27,7 @@
     "bugs": {
         "url": "https://github.com/ulfschneider/stacked-area/issues"
     },
-    "homepage": "https://github.com/ulfschneider/stacked-area#readme",
+    "homepage": "https://ulf.codes/stacked-area",
     "dependencies": {
         "d3": "^5.7.0",
         "js-base64": "^2.4.9",
