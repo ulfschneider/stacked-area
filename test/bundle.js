@@ -25256,6 +25256,26 @@ function drawFocus(settings) {
     }
 }
 
+function hasData(settings) {
+    for (let entry of settings.data.entries) {
+        for (let key of settings.data.keys) {
+            if (entry[key]) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function hasDataForKey(key, settings) {
+    for (let entry of settings.data.entries) {
+        if (entry[key]) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function getColor(key, settings) {
     if (settings.style[key] && settings.style[key].color) {
         return settings.style[key].color;
@@ -25472,6 +25492,7 @@ function drawTextWithBackground({
 function drawLegend(settings) {
 
     const lineHeight = settings.style.fontSize;
+    const isDataAvailable = hasData(settings);
 
     const drawLegendItem = function ({
         text,
@@ -25539,32 +25560,37 @@ function drawLegend(settings) {
             });
         }
 
+        let legendLine = 0;
         settings.data.reverseKeys.forEach((key, index) => {
-            drawRectangle({
-                x: LEGEND_X,
-                y: LEGEND_Y + ((hasTitle ? 2 : 0.5) + index) * lineHeight,
-                width: lineHeight,
-                height: lineHeight,
-                fill: getColor(key, settings)
-            });
-            let item = drawLegendItem({
-                text: key,
-                x: LEGEND_X + lineHeight * 1.62,
-                y: LEGEND_Y + ((hasTitle ? 2.5 : 1) + index) * lineHeight,
-                fill: settings.style.color
-            });
+            if (!isDataAvailable || hasDataForKey(key, settings)) {
+                drawRectangle({
+                    x: LEGEND_X,
+                    y: LEGEND_Y + ((hasTitle ? 2 : 0.5) + legendLine) * lineHeight,
+                    width: lineHeight,
+                    height: lineHeight,
+                    fill: getColor(key, settings)
+                });
+                let item = drawLegendItem({
+                    text: key,
+                    x: LEGEND_X + lineHeight * 1.62,
+                    y: LEGEND_Y + ((hasTitle ? 2.5 : 1) + legendLine) * lineHeight,
+                    fill: settings.style.color
+                });
 
-            //adjust background width
-            //and use progress because it has the most length of 
-            //To Do, In Progress and Done
-            try {
-                let length = item.node().getComputedTextLength();
-                background.attr('width', length + 2.6 * lineHeight);
-            } catch (e) {
-                //JSDOM is not able to operate with getComputedTextLength
-                //therefore this code is not going to run in the tests
+                //adjust background width
+                //and use progress because it has the most length of 
+                //To Do, In Progress and Done
+                try {
+                    let length = item.node().getComputedTextLength();
+                    background.attr('width', length + 2.6 * lineHeight);
+                } catch (e) {
+                    //JSDOM is not able to operate with getComputedTextLength
+                    //therefore this code is not going to run in the tests
+                }
+                legendLine++;
             }
         });
+        background.attr('height', ((hasTitle ? 2 : 0.5) + legendLine) * lineHeight);
     }
 }
 
