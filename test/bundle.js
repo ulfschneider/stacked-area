@@ -25264,7 +25264,7 @@ function hasData(settings) {
                     return true;
                 }
             }
-        } else {
+        } else if (entry) {
             for (let key of settings.data.keys) {
                 if (entry[key]) {
                     return true;
@@ -25283,7 +25283,7 @@ function hasDataForKey(key, settings) {
     for (let entry of settings.data.entries) {
         if (_.isArray(entry) && keyIndex >= 0 && entry[keyIndex + 1]) {
             return true;
-        } else if (entry[key]) {
+        } else if (entry && entry[key]) {
             return true;
         }
     }
