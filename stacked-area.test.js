@@ -4,7 +4,7 @@ const fs = require('fs');
 const stackedArea = require('stacked-area');
 const moment = require('moment');
 const NOW = '2018-09-11 12:00';
-const NUMBER_OF_TEST_IMAGES = 11;
+const NUMBER_OF_TEST_IMAGES = 12;
 let actuals = [];
 let expected = [];
 let settings;
@@ -650,6 +650,30 @@ test('image 10 with reduced data and reduced legend', () => {
     actuals.push(actual);
 
     expect(actuals[10]).toBe(expected[10]);
+});
+
+
+test('image 11 with reduced data and reduced legend in array organized entries', () => {
+    let settings = makeTestSettings();
+    settings.data = makeArrayOfArraysTestData();
+    settings.title = 'Testing Stacked Area with removed "Medium" data in array organized entries';
+    settings.markers = [
+        { date: settings.fromDate },
+        { date: settings.toDate }
+    ];
+
+    for(let entry of settings.data.entries) {
+        entry[3] = 0;
+    }
+
+    let diagram = stackedArea(settings);
+
+    diagram.draw();
+
+    let actual = diagram.svgSource();
+    actuals.push(actual);
+
+    expect(actuals[11]).toBe(expected[11]);
 });
 
 

@@ -25258,9 +25258,17 @@ function drawFocus(settings) {
 
 function hasData(settings) {
     for (let entry of settings.data.entries) {
-        for (let key of settings.data.keys) {
-            if (entry[key]) {
-                return true;
+        if (_.isArray(entry)) {
+            for (let i = 1; i < entry.length; i++) {
+                if (entry[i]) {
+                    return true;
+                }
+            }
+        } else {
+            for (let key of settings.data.keys) {
+                if (entry[key]) {
+                    return true;
+                }
             }
         }
     }
@@ -25268,11 +25276,18 @@ function hasData(settings) {
 }
 
 function hasDataForKey(key, settings) {
+    let keyIndex = -1;
+    if (settings.data.keys) {
+        keyIndex = settings.data.keys.indexOf(key);
+    }
     for (let entry of settings.data.entries) {
-        if (entry[key]) {
+        if (_.isArray(entry) && keyIndex >= 0 && entry[keyIndex + 1]) {
+            return true;
+        } else if (entry[key]) {
             return true;
         }
     }
+
     return false;
 }
 
