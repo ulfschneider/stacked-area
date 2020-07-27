@@ -772,11 +772,10 @@ function drawLegend(settings) {
                 });
 
                 //adjust background width
-                //and use progress because it has the most length of 
-                //To Do, In Progress and Done
                 try {
+                    width = background.attr('width');
                     let length = item.node().getComputedTextLength();
-                    background.attr('width', length + 2.6 * lineHeight);
+                    background.attr('width', Math.max(width, length + 2.6 * lineHeight));
                 } catch (e) {
                     //JSDOM is not able to operate with getComputedTextLength
                     //therefore this code is not going to run in the tests
