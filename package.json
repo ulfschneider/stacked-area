@@ -29,7 +29,7 @@
     },
     "homepage": "https://ulf.codes/stacked-area",
     "dependencies": {
-        "d3": "^5.7.0",
+        "d3": "^7.6.1",
         "js-base64": "^2.4.9",
         "moment": "^2.22.2",
         "underscore": "^1.9.1"
